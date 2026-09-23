@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Two Lists, One Galaxy</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <!-- =========================
+       LOGIN / ENTRY SCREEN
+       ========================= -->
+
+  <div id="gate" class="gate">
+
+    <div class="gate-card">
+
+      <div class="suns" aria-hidden="true">
+        <span></span>
+        <span></span>
+      </div>
+
+      <p class="eyebrow">welcome to shloopy wishlist</p>
+
+      <h1 class="gate-title">
+        Two Lists,<br>One Galaxy
+      </h1>
+
+      <p class="gate-copy">
+        Choose your character: keep the other list a secret from your sneaky eyes.
+      </p>
+
+      <div class="who-buttons">
+
+        <button class="who-btn who-anakin" data-who="anakin">
+          <span class="who-label">Anakin</span>
+          <span class="who-sub">Tatooine &middot; twin suns</span>
+        </button>
+
+        <button class="who-btn who-padme" data-who="padme">
+          <span class="who-label">Padmé</span>
+          <span class="who-sub">Naboo &middot; lake country</span>
+        </button>
+
+      </div>
+
+      <p class="gate-note" id="gateNote"></p>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       MAIN APP
+       ========================= -->
+
+  <div id="app" class="app hidden">
+
+    <header class="hero">
+
+      <div class="suns suns-small" aria-hidden="true">
+        <span></span>
+        <span></span>
+      </div>
+
+      <p class="eyebrow" id="viewerEyebrow">
+        viewing as
+      </p>
+
+      <h1 class="hero-title">
+        Two Lists, One Galaxy
+      </h1>
+
+      <p class="hero-copy">
+        Add what you love. Reserve what you'll give.
+        Some things are meant to stay secret.
+      </p>
+
+      <button id="switchBtn" class="switch-btn">
+        switch who's asking
+      </button>
+
+    </header>
+
+
+    <!-- =========================
+         ADD SOMETHING
+         ========================= -->
+
+    <section class="add-area">
+
+      <div class="add-card">
+
+        <p class="eyebrow">
+          add something
+        </p>
+
+        <h2 class="add-title">
+          What are we adding?
+        </h2>
+
+        <p class="add-copy">
+          Add something to either list. You can make it visible to both of you,
+          or keep it as a secret gift.
+        </p>
+
+
+        <div class="add-form">
+
+          <label for="itemOwner">
+            Add to
+          </label>
+
+          <select id="itemOwner">
+            <option value="anakin">
+              Anakin's list
+            </option>
+
+            <option value="padme">
+              Padmé's list
+            </option>
+          </select>
+
+
+          <label for="itemTitle">
+            What is it?
+          </label>
+
+          <input
+            id="itemTitle"
+            type="text"
+            placeholder="What do you want?"
+          >
+
+
+          <label for="itemUrl">
+            Link
+          </label>
+
+          <input
+            id="itemUrl"
+            type="url"
+            placeholder="Link (optional)"
+          >
+
+
+          <label for="itemNote">
+            Note
+          </label>
+
+          <input
+            id="itemNote"
+            type="text"
+            placeholder="Size, colour, why, etc. (optional)"
+          >
+
+
+          <div class="visibility-choice">
+
+            <p class="choice-label">
+              Who can see this?
+            </p>
+
+            <label class="radio-option">
+
+              <input
+                type="radio"
+                name="visibility"
+                value="visible"
+                checked
+              >
+
+              <span>
+                Visible to both
+              </span>
+
+            </label>
+
+
+            <label class="radio-option">
+
+              <input
+                type="radio"
+                name="visibility"
+                value="hidden"
+              >
+
+              <span id="secretLabel">
+                Secret gift
+              </span>
+
+            </label>
+
+          </div>
+
+
+          <button
+            id="addItemBtn"
+            class="f-submit"
+          >
+            Add to the list
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         LISTS
+         ========================= -->
+
+    <main class="board">
+
+
+      <!-- ANAKIN'S LIST -->
+
+      <section
+        class="column column-anakin"
+        data-owner="anakin"
+      >
+
+        <div class="col-head">
+
+          <h2 class="col-title">
+            Anakin's List
+          </h2>
+
+          <p class="col-sub">
+            desert-forged, practical, a little reckless muffin
+          </p>
+
+        </div>
+
+        <ul
+          class="items"
+          data-list-for="anakin"
+        ></ul>
+
+        <p
+          class="empty-state"
+          data-empty-for="anakin"
+        >
+          Nothing here yet. The desert is patient.
+        </p>
+
+      </section>
+
+
+      <!-- DIVIDER -->
+
+      <div class="divider" aria-hidden="true">
+        <div class="pendant"></div>
+      </div>
+
+
+      <!-- PADMÉ'S LIST -->
+
+      <section
+        class="column column-padme"
+        data-owner="padme"
+      >
+
+        <div class="col-head">
+
+          <h2 class="col-title">
+            Padmé's List
+          </h2>
+
+          <p class="col-sub">
+            refined, considered, quietly bold shloopette
+          </p>
+
+        </div>
+
+        <ul
+          class="items"
+          data-list-for="padme"
+        ></ul>
+
+        <p
+          class="empty-state"
+          data-empty-for="padme"
+        >
+          Nothing here yet. The lake is still.
+        </p>
+
+      </section>
+
+    </main>
+
+
+    <footer class="site-footer">
+
+      <p>
+        kept quietly, for the two of you
+      </p>
+
+    </footer>
+
+  </div>
+
+
+  <script
+    type="module"
+    src="js/firebase-config.js"
+  ></script>
+
+  <script
+    type="module"
+    src="js/app.js"
+  ></script>
+
+</body>
+</html>
