@@ -1,330 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Two Lists, One Galaxy</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap"
-    rel="stylesheet"
-  >
-
-  <link rel="stylesheet" href="css/styles.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Two Lists, One Galaxy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2235%22 cy=%2250%22 r=%2222%22 fill=%22%23c99a3c%22/><circle cx=%2270%22 cy=%2250%22 r=%2222%22 fill=%22%236e1f2a%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css" />
 </head>
-
 <body>
+  <div class="starfield" aria-hidden="true"></div>
 
-  <!-- =========================
-       LOGIN / ENTRY SCREEN
-       ========================= -->
-
+  <!-- Login -->
   <div id="gate" class="gate">
-
     <div class="gate-card">
-
-      <div class="suns" aria-hidden="true">
-        <span></span>
-        <span></span>
-      </div>
-
+      <div class="suns" aria-hidden="true"><span></span><span></span></div>
       <p class="eyebrow">welcome to shloopy wishlist</p>
-
-      <h1 class="gate-title">
-        Two Lists,<br>One Galaxy
-      </h1>
-
-      <p class="gate-copy">
-        Choose your character: keep the other list a secret from your sneaky eyes.
-      </p>
-
+      <h1 class="gate-title">Two Lists,<br>One Galaxy</h1>
+      <p class="gate-copy">Sign in to see both lists — and your own private stash of surprises.</p>
       <div class="who-buttons">
-
         <button class="who-btn who-anakin" data-who="anakin">
           <span class="who-label">Anakin</span>
           <span class="who-sub">Tatooine &middot; twin suns</span>
         </button>
-
         <button class="who-btn who-padme" data-who="padme">
           <span class="who-label">Padmé</span>
           <span class="who-sub">Naboo &middot; lake country</span>
         </button>
-
       </div>
-
       <p class="gate-note" id="gateNote"></p>
-
+      <div class="droid" title="beep boop, welcome home" aria-hidden="true">
+        <div class="droid-dome"><span class="droid-eye"></span></div>
+        <div class="droid-body"><span class="droid-panel"></span></div>
+      </div>
     </div>
-
   </div>
 
-
-  <!-- =========================
-       MAIN APP
-       ========================= -->
-
+  <!-- App -->
   <div id="app" class="app hidden">
-
     <header class="hero">
-
-      <div class="suns suns-small" aria-hidden="true">
-        <span></span>
-        <span></span>
-      </div>
-
-      <p class="eyebrow" id="viewerEyebrow">
-        viewing as
-      </p>
-
-      <h1 class="hero-title">
-        Two Lists, One Galaxy
-      </h1>
-
-      <p class="hero-copy">
-        Add what you love. Reserve what you'll give.
-        Some things are meant to stay secret.
-      </p>
-
-      <button id="switchBtn" class="switch-btn">
-        switch who's asking
-      </button>
-
+      <div class="suns suns-small" aria-hidden="true"><span></span><span></span></div>
+      <p class="eyebrow" id="viewerEyebrow">viewing as</p>
+      <h1 class="hero-title">Two Lists, One Galaxy</h1>
+      <p class="hero-copy">Both lists are open to both of you — add to either one, see who added what. Your secret stash, further down, stays yours alone.</p>
+      <button id="switchBtn" class="switch-btn">sign out</button>
     </header>
 
-
-    <!-- =========================
-         ADD SOMETHING
-         ========================= -->
-
     <section class="add-area">
-
       <div class="add-card">
-
-        <p class="eyebrow">
-          add something
-        </p>
-
-        <h2 class="add-title">
-          What are we adding?
-        </h2>
-
-        <p class="add-copy">
-          Add something to either list. You can make it visible to both of you,
-          or keep it as a secret gift.
-        </p>
-
-
+        <p class="eyebrow">add something</p>
+        <h2 class="add-title">Add to a shared list</h2>
         <div class="add-form">
-
-          <label for="itemOwner">
-            Add to
-          </label>
-
+          <label for="itemOwner">Which list?</label>
           <select id="itemOwner">
-            <option value="anakin">
-              Anakin's list
-            </option>
-
-            <option value="padme">
-              Padmé's list
-            </option>
+            <option value="anakin">Anakin's list</option>
+            <option value="padme">Padmé's list</option>
           </select>
-
-
-          <label for="itemTitle">
-            What is it?
-          </label>
-
-          <input
-            id="itemTitle"
-            type="text"
-            placeholder="What do you want?"
-          >
-
-
-          <label for="itemUrl">
-            Link
-          </label>
-
-          <input
-            id="itemUrl"
-            type="url"
-            placeholder="Link (optional)"
-          >
-
-
-          <label for="itemNote">
-            Note
-          </label>
-
-          <input
-            id="itemNote"
-            type="text"
-            placeholder="Size, colour, why, etc. (optional)"
-          >
-
-
-          <div class="visibility-choice">
-
-            <p class="choice-label">
-              Who can see this?
-            </p>
-
-            <label class="radio-option">
-
-              <input
-                type="radio"
-                name="visibility"
-                value="visible"
-                checked
-              >
-
-              <span>
-                Visible to both
-              </span>
-
-            </label>
-
-
-            <label class="radio-option">
-
-              <input
-                type="radio"
-                name="visibility"
-                value="hidden"
-              >
-
-              <span id="secretLabel">
-                Secret gift
-              </span>
-
-            </label>
-
-          </div>
-
-
-          <button
-            id="addItemBtn"
-            class="f-submit"
-          >
-            Add to the list
-          </button>
-
+          <label for="itemTitle">What is it?</label>
+          <input id="itemTitle" type="text" placeholder="What do you want?" />
+          <label for="itemUrl">Link</label>
+          <input id="itemUrl" type="url" placeholder="Link (optional)" />
+          <label for="itemNote">Note</label>
+          <input id="itemNote" type="text" placeholder="Size, colour, why, etc. (optional)" />
+          <button id="addItemBtn" class="f-submit">Add to the list</button>
         </div>
-
       </div>
-
     </section>
 
-
-    <!-- =========================
-         LISTS
-         ========================= -->
-
     <main class="board">
-
-
-      <!-- ANAKIN'S LIST -->
-
-      <section
-        class="column column-anakin"
-        data-owner="anakin"
-      >
-
+      <section class="column column-anakin" data-owner="anakin">
         <div class="col-head">
-
-          <h2 class="col-title">
-            Anakin's List
-          </h2>
-
-          <p class="col-sub">
-            desert-forged, practical, a little reckless muffin
-          </p>
-
+          <h2 class="col-title">Anakin's List</h2>
+          <p class="col-sub">desert-forged, practical, a little reckless</p>
         </div>
-
-        <ul
-          class="items"
-          data-list-for="anakin"
-        ></ul>
-
-        <p
-          class="empty-state"
-          data-empty-for="anakin"
-        >
-          Nothing here yet. The desert is patient.
-        </p>
-
+        <ul class="items" data-list-for="anakin"></ul>
+        <p class="empty-state" data-empty-for="anakin">Nothing here yet. The desert is patient.</p>
       </section>
-
-
-      <!-- DIVIDER -->
 
       <div class="divider" aria-hidden="true">
-        <div class="pendant"></div>
+        <div class="saber"></div>
       </div>
 
-
-      <!-- PADMÉ'S LIST -->
-
-      <section
-        class="column column-padme"
-        data-owner="padme"
-      >
-
+      <section class="column column-padme" data-owner="padme">
         <div class="col-head">
-
-          <h2 class="col-title">
-            Padmé's List
-          </h2>
-
-          <p class="col-sub">
-            refined, considered, quietly bold shloopette
-          </p>
-
+          <h2 class="col-title">Padmé's List</h2>
+          <p class="col-sub">refined, considered, quietly bold</p>
         </div>
-
-        <ul
-          class="items"
-          data-list-for="padme"
-        ></ul>
-
-        <p
-          class="empty-state"
-          data-empty-for="padme"
-        >
-          Nothing here yet. The lake is still.
-        </p>
-
+        <ul class="items" data-list-for="padme"></ul>
+        <p class="empty-state" data-empty-for="padme">Nothing here yet. The lake is still.</p>
       </section>
-
     </main>
 
+    <section class="secret-area">
+      <div class="secret-card">
+        <p class="eyebrow">only you can see this</p>
+        <h2 class="secret-title">Your secret stash</h2>
+        <p class="secret-copy">Gift ideas you're planning, things you've already bought — this list never reaches your partner's screen, no matter what they do.</p>
+        <div class="add-form">
+          <label for="secretTitle">What is it?</label>
+          <input id="secretTitle" type="text" placeholder="e.g. bought the record player ✓" />
+          <label for="secretUrl">Link</label>
+          <input id="secretUrl" type="url" placeholder="Link (optional)" />
+          <label for="secretNote">Note</label>
+          <input id="secretNote" type="text" placeholder="Notes to yourself (optional)" />
+          <button id="addSecretBtn" class="f-submit f-submit-secret">Add to secret stash</button>
+        </div>
+        <ul class="items secret-items" id="secretItemsList"></ul>
+        <p class="empty-state" id="secretEmptyState">Nothing here yet.</p>
+      </div>
+    </section>
 
     <footer class="site-footer">
-
-      <p>
-        kept quietly, for the two of you
-      </p>
-
+      <p>kept quietly, for the two of you &middot; <span class="droid-tag" title="this is the archive you're looking for">S3-A9</span></p>
     </footer>
-
   </div>
 
-
-  <script
-    type="module"
-    src="js/firebase-config.js"
-  ></script>
-
-  <script
-    type="module"
-    src="js/app.js"
-  ></script>
-
+  <script type="module" src="js/firebase-config.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
