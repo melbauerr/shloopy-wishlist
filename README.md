@@ -52,7 +52,7 @@ wait about a minute, then reload.
 Module imports don't work over `file://`, so serve it:
 
 ```bash
-cd wishlist
+cd shloopy-wishlist
 python3 -m http.server 8000
 ```
 Open **http://localhost:8000**. Test with two windows (one normal, one

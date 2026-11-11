@@ -1,330 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Two Lists, One Galaxy</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap"
-    rel="stylesheet"
-  >
-
-  <link rel="stylesheet" href="css/styles.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a1418" />
+<title>Two Lists, One Galaxy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2235%22 cy=%2250%22 r=%2222%22 fill=%22%234fb3ff%22/><circle cx=%2270%22 cy=%2250%22 r=%2222%22 fill=%22%23e6bb5e%22/></svg>">
+<script>document.documentElement.setAttribute("data-side", localStorage.getItem("side") || "light");</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css" />
 </head>
-
 <body>
+  <div class="starfield" aria-hidden="true"></div>
 
-  <!-- =========================
-       LOGIN / ENTRY SCREEN
-       ========================= -->
+  <header class="chrome">
+    <div class="brand">
+      <span class="suns" aria-hidden="true"><span></span><span></span></span>
+      <span class="brand-text">Two Lists, One Galaxy</span>
+    </div>
+    <div class="chrome-right">
+      <div class="session hidden" id="session">
+        <span class="who-chip" id="viewerName"></span>
+        <button class="link-btn" id="signOutBtn">sign out</button>
+      </div>
+      <button class="saber-toggle" id="sideToggle" type="button" aria-label="Switch between light side and dark side">
+        <span class="hilt"><i></i><i></i><i></i></span>
+        <span class="blade" id="toggleBlade"></span>
+      </button>
+    </div>
+  </header>
 
+  <!-- Sign in -->
   <div id="gate" class="gate">
-
     <div class="gate-card">
+      <span class="gate-title-mark">episode mel &amp; johnny</span>
+      <h1 class="gate-title">Two Lists,<br>One Galaxy</h1>
 
-      <div class="suns" aria-hidden="true">
-        <span></span>
-        <span></span>
-      </div>
-
-      <p class="eyebrow">welcome to shloopy wishlist</p>
-
-      <h1 class="gate-title">
-        Two Lists,<br>One Galaxy
-      </h1>
-
-      <p class="gate-copy">
-        Choose your character: keep the other list a secret from your sneaky eyes.
-      </p>
-
-      <div class="who-buttons">
-
-        <button class="who-btn who-anakin" data-who="anakin">
+      <div id="gateChoices" class="who-buttons">
+        <button class="who-btn" data-who="anakin" style="--c: var(--saber-a)">
+          <span class="mini"><span class="mini-hilt"></span><span class="mini-blade"></span></span>
           <span class="who-label">Anakin</span>
-          <span class="who-sub">Tatooine &middot; twin suns</span>
         </button>
-
-        <button class="who-btn who-padme" data-who="padme">
+        <button class="who-btn" data-who="padme" style="--c: var(--saber-p)">
+          <span class="mini"><span class="mini-hilt"></span><span class="mini-blade"></span></span>
           <span class="who-label">Padmé</span>
-          <span class="who-sub">Naboo &middot; lake country</span>
         </button>
-
       </div>
+
+      <form id="loginForm" class="login hidden">
+        <p class="login-who" id="loginName"></p>
+        <div class="pw-row">
+          <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" required />
+          <button type="submit" aria-label="Enter">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+        <button type="button" id="loginBack" class="link-btn">&larr; back</button>
+      </form>
 
       <p class="gate-note" id="gateNote"></p>
-
     </div>
-
   </div>
 
-
-  <!-- =========================
-       MAIN APP
-       ========================= -->
-
+  <!-- App -->
   <div id="app" class="app hidden">
+    <nav class="tabs" id="tabs" aria-label="Lists"></nav>
 
-    <header class="hero">
-
-      <div class="suns suns-small" aria-hidden="true">
-        <span></span>
-        <span></span>
-      </div>
-
-      <p class="eyebrow" id="viewerEyebrow">
-        viewing as
-      </p>
-
-      <h1 class="hero-title">
-        Two Lists, One Galaxy
-      </h1>
-
-      <p class="hero-copy">
-        Add what you love. Reserve what you'll give.
-        Some things are meant to stay secret.
-      </p>
-
-      <button id="switchBtn" class="switch-btn">
-        switch who's asking
-      </button>
-
-    </header>
-
-
-    <!-- =========================
-         ADD SOMETHING
-         ========================= -->
-
-    <section class="add-area">
-
-      <div class="add-card">
-
-        <p class="eyebrow">
-          add something
-        </p>
-
-        <h2 class="add-title">
-          What are we adding?
-        </h2>
-
-        <p class="add-copy">
-          Add something to either list. You can make it visible to both of you,
-          or keep it as a secret gift.
-        </p>
-
-
-        <div class="add-form">
-
-          <label for="itemOwner">
-            Add to
-          </label>
-
-          <select id="itemOwner">
-            <option value="anakin">
-              Anakin's list
-            </option>
-
-            <option value="padme">
-              Padmé's list
-            </option>
-          </select>
-
-
-          <label for="itemTitle">
-            What is it?
-          </label>
-
-          <input
-            id="itemTitle"
-            type="text"
-            placeholder="What do you want?"
-          >
-
-
-          <label for="itemUrl">
-            Link
-          </label>
-
-          <input
-            id="itemUrl"
-            type="url"
-            placeholder="Link (optional)"
-          >
-
-
-          <label for="itemNote">
-            Note
-          </label>
-
-          <input
-            id="itemNote"
-            type="text"
-            placeholder="Size, colour, why, etc. (optional)"
-          >
-
-
-          <div class="visibility-choice">
-
-            <p class="choice-label">
-              Who can see this?
-            </p>
-
-            <label class="radio-option">
-
-              <input
-                type="radio"
-                name="visibility"
-                value="visible"
-                checked
-              >
-
-              <span>
-                Visible to both
-              </span>
-
-            </label>
-
-
-            <label class="radio-option">
-
-              <input
-                type="radio"
-                name="visibility"
-                value="hidden"
-              >
-
-              <span id="secretLabel">
-                Secret gift
-              </span>
-
-            </label>
-
-          </div>
-
-
-          <button
-            id="addItemBtn"
-            class="f-submit"
-          >
-            Add to the list
-          </button>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================
-         LISTS
-         ========================= -->
-
-    <main class="board">
-
-
-      <!-- ANAKIN'S LIST -->
-
-      <section
-        class="column column-anakin"
-        data-owner="anakin"
-      >
-
-        <div class="col-head">
-
-          <h2 class="col-title">
-            Anakin's List
-          </h2>
-
-          <p class="col-sub">
-            desert-forged, practical, a little reckless muffin
-          </p>
-
-        </div>
-
-        <ul
-          class="items"
-          data-list-for="anakin"
-        ></ul>
-
-        <p
-          class="empty-state"
-          data-empty-for="anakin"
-        >
-          Nothing here yet. The desert is patient.
-        </p>
-
+    <main class="board" id="board" data-tab="anakin">
+      <section class="column" data-owner="anakin" style="--c: var(--saber-a)">
+        <header class="col-head">
+          <span class="companion companion-dome" aria-hidden="true">
+            <span class="dome-head"><span class="dome-eye"></span></span>
+            <span class="dome-body"></span>
+          </span>
+          <h2 class="col-title">Anakin</h2>
+          <span class="count" data-count-for="anakin">0</span>
+        </header>
+        <form class="quickadd" data-owner="anakin">
+          <input type="text" placeholder="Add something… paste a link, add a $price" autocomplete="off" enterkeyhint="done" aria-label="Add to Anakin's list" />
+          <button type="submit" aria-label="Add"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        </form>
+        <ul class="items" data-list-for="anakin"></ul>
+        <p class="empty" data-empty-for="anakin">Nothing yet.</p>
       </section>
-
-
-      <!-- DIVIDER -->
 
       <div class="divider" aria-hidden="true">
-        <div class="pendant"></div>
+        <i class="vhilt"></i><i class="vsaber"></i>
       </div>
 
-
-      <!-- PADMÉ'S LIST -->
-
-      <section
-        class="column column-padme"
-        data-owner="padme"
-      >
-
-        <div class="col-head">
-
-          <h2 class="col-title">
-            Padmé's List
-          </h2>
-
-          <p class="col-sub">
-            refined, considered, quietly bold shloopette
-          </p>
-
-        </div>
-
-        <ul
-          class="items"
-          data-list-for="padme"
-        ></ul>
-
-        <p
-          class="empty-state"
-          data-empty-for="padme"
-        >
-          Nothing here yet. The lake is still.
-        </p>
-
+      <section class="column" data-owner="padme" style="--c: var(--saber-p)">
+        <header class="col-head">
+          <span class="companion companion-lantern" aria-hidden="true">
+            <span class="lantern-orb"></span>
+            <span class="lantern-leg"></span>
+          </span>
+          <h2 class="col-title">Padmé</h2>
+          <span class="count" data-count-for="padme">0</span>
+        </header>
+        <form class="quickadd" data-owner="padme">
+          <input type="text" placeholder="Add something… paste a link, add a $price" autocomplete="off" enterkeyhint="done" aria-label="Add to Padmé's list" />
+          <button type="submit" aria-label="Add"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        </form>
+        <ul class="items" data-list-for="padme"></ul>
+        <p class="empty" data-empty-for="padme">Nothing yet.</p>
       </section>
-
     </main>
 
-
     <footer class="site-footer">
-
-      <p>
-        kept quietly, for the two of you
-      </p>
-
+      <button class="droid-btn" id="droid" type="button" aria-label="Say hi to the droid">
+        <span class="droid-dome"><span class="droid-eye"></span></span>
+        <span class="droid-body"><span class="droid-panel"></span></span>
+      </button>
     </footer>
-
   </div>
 
+  <!-- Secret drawer -->
+  <button class="fab hidden" id="secretFab" type="button" aria-label="Open your secret list">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+    <span class="fab-count hidden" id="secretCount">0</span>
+  </button>
+  <div class="scrim" id="scrim"></div>
+  <aside class="drawer" id="secretDrawer" aria-label="Secret list">
+    <header class="drawer-head">
+      <div>
+        <h2 class="drawer-title">Secret</h2>
+        <p class="drawer-sub">only you can see this</p>
+      </div>
+      <button class="icon-btn" id="drawerClose" type="button" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </header>
+    <form class="quickadd" id="secretForm">
+      <input id="secretInput" type="text" placeholder="Surprise ideas, things you've bought…" autocomplete="off" enterkeyhint="done" aria-label="Add to secret list" />
+      <button type="submit" aria-label="Add"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    </form>
+    <ul class="items" id="secretItemsList"></ul>
+    <p class="empty" id="secretEmpty">Nothing yet.</p>
+  </aside>
 
-  <script
-    type="module"
-    src="js/firebase-config.js"
-  ></script>
+  <!-- Edit dialog -->
+  <dialog id="editDialog">
+    <form id="editForm" autocomplete="off">
+      <input id="editTitle" type="text" placeholder="Title" required />
+      <input id="editUrl" type="text" placeholder="Link" inputmode="url" />
+      <input id="editPrice" type="text" placeholder="Price" />
+      <textarea id="editNote" rows="3" placeholder="Note"></textarea>
+      <div class="dialog-actions">
+        <button type="button" class="ghost danger" id="editDelete">Delete</button>
+        <span class="spacer"></span>
+        <button type="button" class="ghost" id="editCancel">Cancel</button>
+        <button type="submit" class="primary">Save</button>
+      </div>
+    </form>
+  </dialog>
 
-  <script
-    type="module"
-    src="js/app.js"
-  ></script>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script type="module" src="js/firebase-config.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

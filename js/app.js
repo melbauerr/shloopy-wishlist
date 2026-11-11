@@ -1,970 +1,466 @@
 import { firebaseConfig } from "./firebase-config.js";
-
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  initializeApp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  query,
-  orderBy,
-  serverTimestamp
+  getFirestore, collection, addDoc, deleteDoc, updateDoc, doc,
+  onSnapshot, query, orderBy, serverTimestamp, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 import {
-  getAuth,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+// ============================================================
+// PEOPLE — the only block you should normally need to touch.
+// uid must match Firebase Authentication > Users, and must also
+// appear in firestore.rules for both collections.
+// ============================================================
+const PEOPLE = {
+  anakin: { label: "Anakin", email: "johnny.zammit03@gmail.com", uid: "YiseNexpFLP8GP4OLQYDb7KV4Li2" },
+  padme: { label: "Padmé", email: "mel.bauerr@gmail.com", uid: "lUlrBxUSMtg2M4oIscxeybT8wOJ2" }
+};
+
+const DROID_LINES = [
+  "beep boop. welcome home.",
+  "this is the archive you're looking for.",
+  "bzzt — may the wishlist be with you.",
+  "whirr… two lists detected, one galaxy confirmed."
+];
 
 // ============================================================
-// FIREBASE SETUP
+// Firebase setup
 // ============================================================
-
 const app = initializeApp(firebaseConfig);
-
 const db = getFirestore(app);
-
 const auth = getAuth(app);
-
 const itemsCol = collection(db, "wishlist_items");
-
-
-// ============================================================
-// FIREBASE USER IDS
-// ============================================================
-
-const USERS = {
-  padme: "lUlrBxUSMtg2M4oIscxeybT8wOJ2",
-  anakin: "YiseNexpFLP8GP4OLQYDb7KV4Li2"
-};
-
+const secretsCol = collection(db, "secret_items");
 
 // ============================================================
-// ACCOUNT EMAILS
+// Elements
 // ============================================================
-
-const ACCOUNT_EMAILS = {
-  padme: "mel.bauerr@gmail.com",
-  anakin: "johnny.zammit03@gmail.com"
-};
-
-
-// ============================================================
-// PAGE ELEMENTS
-// ============================================================
-
 const gateEl = document.getElementById("gate");
 const appEl = document.getElementById("app");
 const gateNote = document.getElementById("gateNote");
-const viewerEyebrow = document.getElementById("viewerEyebrow");
-const switchBtn = document.getElementById("switchBtn");
+const gateChoices = document.getElementById("gateChoices");
+const loginForm = document.getElementById("loginForm");
+const loginName = document.getElementById("loginName");
+const loginPassword = document.getElementById("loginPassword");
+const loginBack = document.getElementById("loginBack");
 
-const itemOwner = document.getElementById("itemOwner");
-const itemTitle = document.getElementById("itemTitle");
-const itemUrl = document.getElementById("itemUrl");
-const itemNote = document.getElementById("itemNote");
-const addItemBtn = document.getElementById("addItemBtn");
+const sessionEl = document.getElementById("session");
+const viewerName = document.getElementById("viewerName");
+const signOutBtn = document.getElementById("signOutBtn");
+const sideToggle = document.getElementById("sideToggle");
+const toggleBlade = document.getElementById("toggleBlade");
 
-const secretLabel = document.getElementById("secretLabel");
+const tabsEl = document.getElementById("tabs");
+const boardEl = document.getElementById("board");
 
+const secretFab = document.getElementById("secretFab");
+const secretCount = document.getElementById("secretCount");
+const scrim = document.getElementById("scrim");
+const secretDrawer = document.getElementById("secretDrawer");
+const drawerClose = document.getElementById("drawerClose");
+const secretForm = document.getElementById("secretForm");
+const secretInput = document.getElementById("secretInput");
+const secretList = document.getElementById("secretItemsList");
+const secretEmpty = document.getElementById("secretEmpty");
+
+const editDialog = document.getElementById("editDialog");
+const editForm = document.getElementById("editForm");
+const editTitle = document.getElementById("editTitle");
+const editUrl = document.getElementById("editUrl");
+const editPrice = document.getElementById("editPrice");
+const editNote = document.getElementById("editNote");
+const editDelete = document.getElementById("editDelete");
+const editCancel = document.getElementById("editCancel");
+
+const droidBtn = document.getElementById("droid");
+const toastEl = document.getElementById("toast");
+
+let viewerKey = null;
+let pendingLoginKey = null;
+let sharedItems = [];
+let secretItems = [];
+let unsubscribeSecret = null;
+let editingContext = null; // { kind: "shared"|"secret", id }
 
 // ============================================================
-// CURRENT USER
+// Toast
 // ============================================================
-
-let viewer = null;
-
-let allItems = [];
-
-
-// ============================================================
-// LOGIN
-// ============================================================
-
-async function loginAs(who) {
-
-  const email = ACCOUNT_EMAILS[who];
-
-  if (!email) {
-    gateNote.textContent = "Account email is missing in app.js.";
-    return;
-  }
-
-  const password = prompt(
-    `Enter the password for ${
-      who === "anakin" ? "Anakin" : "Padmé"
-    }:`
-  );
-
-  if (!password) {
-    return;
-  }
-
-  gateNote.textContent = "Signing in...";
-
-  try {
-
-    await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-
-  } catch (err) {
-
-    console.error("Login error:", err);
-
-    gateNote.textContent =
-      "Login failed. Please check the password.";
-
-  }
+let toastTimer = null;
+function toast(message) {
+  toastEl.textContent = message;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
 }
 
+// ============================================================
+// Light side / dark side toggle
+// ============================================================
+function applySide(side) {
+  document.documentElement.setAttribute("data-side", side);
+  localStorage.setItem("side", side);
+}
+applySide(localStorage.getItem("side") || "light");
+
+sideToggle.addEventListener("click", () => {
+  const next = document.documentElement.getAttribute("data-side") === "dark" ? "light" : "dark";
+  applySide(next);
+  toggleBlade.animate(
+    [{ transform: "scaleY(0.2)", opacity: 0.4 }, { transform: "scaleY(1)", opacity: 1 }],
+    { duration: 260, easing: "ease-out" }
+  );
+});
 
 // ============================================================
-// LOGIN BUTTONS
+// Gate — pick person, then password
 // ============================================================
-
-document
-  .querySelectorAll(".who-btn")
-  .forEach((button) => {
-
-    button.addEventListener("click", () => {
-
-      loginAs(button.dataset.who);
-
-    });
-
+gateChoices.querySelectorAll(".who-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    pendingLoginKey = btn.dataset.who;
+    loginName.textContent = PEOPLE[pendingLoginKey].label;
+    gateChoices.classList.add("hidden");
+    loginForm.classList.remove("hidden");
+    loginPassword.value = "";
+    loginPassword.focus();
+    gateNote.textContent = "";
   });
+});
 
+loginBack.addEventListener("click", () => {
+  loginForm.classList.add("hidden");
+  gateChoices.classList.remove("hidden");
+  pendingLoginKey = null;
+});
+
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!pendingLoginKey) return;
+  const email = PEOPLE[pendingLoginKey].email;
+  const password = loginPassword.value;
+  if (!password) return;
+
+  gateNote.textContent = "Signing in…";
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) {
+    console.error("Login error:", err);
+    gateNote.textContent = "That password didn't work.";
+  }
+});
+
+signOutBtn.addEventListener("click", async () => {
+  try { await signOut(auth); } catch (err) { console.error("Sign out error:", err); }
+});
 
 // ============================================================
-// AUTHENTICATION STATE
+// Auth state
 // ============================================================
-
 onAuthStateChanged(auth, (user) => {
+  if (unsubscribeSecret) { unsubscribeSecret(); unsubscribeSecret = null; }
 
   if (!user) {
-
-    viewer = null;
-
+    viewerKey = null;
     gateEl.classList.remove("hidden");
-
     appEl.classList.add("hidden");
-
+    sessionEl.classList.add("hidden");
+    secretFab.classList.add("hidden");
+    loginForm.classList.add("hidden");
+    gateChoices.classList.remove("hidden");
     return;
   }
 
-
-  if (user.uid === USERS.padme) {
-
-    viewer = "padme";
-
-  } else if (user.uid === USERS.anakin) {
-
-    viewer = "anakin";
-
-  } else {
-
-    console.error(
-      "Unknown Firebase user:",
-      user.uid
-    );
-
+  viewerKey = Object.keys(PEOPLE).find((k) => PEOPLE[k].uid === user.uid) || null;
+  if (!viewerKey) {
+    console.error("Signed-in uid doesn't match any PEOPLE entry:", user.uid);
+    gateNote.textContent = "That account isn't set up in app.js.";
     signOut(auth);
-
     return;
   }
-
-
-  // Show the app
 
   gateEl.classList.add("hidden");
-
   appEl.classList.remove("hidden");
+  sessionEl.classList.remove("hidden");
+  secretFab.classList.remove("hidden");
+  viewerName.textContent = PEOPLE[viewerKey].label;
+  setActiveTab(viewerKey);
 
-
-  // Show current user
-
-  viewerEyebrow.textContent =
-    `viewing as ${
-      viewer === "anakin"
-        ? "Anakin"
-        : "Padmé"
-    }`;
-
-
-  // Default add destination to own list
-
-  itemOwner.value = viewer;
-
-
-  updateSecretLabel();
-
-  render();
-
+  listenToSecrets(user.uid);
+  renderShared();
 });
 
+// ============================================================
+// Mobile tabs
+// ============================================================
+function buildTabs() {
+  tabsEl.innerHTML = Object.keys(PEOPLE)
+    .map((key) => `<button class="tab" data-tab="${key}">${PEOPLE[key].label}</button>`)
+    .join("");
+  tabsEl.querySelectorAll(".tab").forEach((btn) => {
+    btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+  });
+}
+function setActiveTab(key) {
+  boardEl.dataset.tab = key;
+  tabsEl.querySelectorAll(".tab").forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === key));
+}
+buildTabs();
 
 // ============================================================
-// SECRET LABEL
+// Smart quick-add parsing: pulls a URL and a $price out of one
+// line of free text, leaving the rest as the title.
 // ============================================================
+function parseQuickAdd(raw) {
+  let text = raw.trim();
+  let url = null;
+  let price = null;
 
-function updateSecretLabel() {
-
-  if (viewer === "padme") {
-
-    secretLabel.textContent =
-      "Secret gift - Anakin won't see this";
-
-  } else {
-
-    secretLabel.textContent =
-      "Secret gift - Padmé won't see this";
-
+  const urlMatch = text.match(/https?:\/\/\S+/i);
+  if (urlMatch) {
+    url = urlMatch[0];
+    text = (text.slice(0, urlMatch.index) + text.slice(urlMatch.index + urlMatch[0].length)).trim();
   }
 
+  const priceMatch = text.match(/\$\s?\d+(\.\d{1,2})?/);
+  if (priceMatch) {
+    price = priceMatch[0].replace(/\s/g, "");
+    text = (text.slice(0, priceMatch.index) + text.slice(priceMatch.index + priceMatch[0].length)).trim();
+  }
+
+  text = text.replace(/\s{2,}/g, " ").replace(/^[-–—,\s]+|[-–—,\s]+$/g, "").trim();
+  return { title: text, url, price };
 }
 
-
 // ============================================================
-// SIGN OUT
+// Shared items
 // ============================================================
-
-switchBtn.addEventListener(
-  "click",
-  async () => {
-
-    try {
-
-      await signOut(auth);
-
-    } catch (err) {
-
-      console.error(
-        "Sign out error:",
-        err
-      );
-
-    }
-
-  }
-);
-
-
-// ============================================================
-// FIRESTORE LISTENER
-// ============================================================
-
-const q = query(
-  itemsCol,
-  orderBy("createdAt", "desc")
-);
-
+const sharedQuery = query(itemsCol, orderBy("createdAt", "desc"));
 onSnapshot(
-  q,
-
+  sharedQuery,
   (snapshot) => {
-
-    allItems = snapshot.docs.map((document) => ({
-
-      id: document.id,
-
-      ...document.data()
-
-    }));
-
-    render();
-
+    sharedItems = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderShared();
   },
-
   (err) => {
-
-    console.error(
-      "Firestore error:",
-      err
-    );
-
-    gateNote.textContent =
-      "Couldn't connect to the shared list. Check your Firebase setup and Firestore rules.";
-
+    console.error("Firestore error (shared):", err);
+    toast("Couldn't load the shared lists.");
   }
 );
 
+document.querySelectorAll(".quickadd[data-owner]").forEach((form) => {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!viewerKey) return;
+    const input = form.querySelector("input");
+    const parsed = parseQuickAdd(input.value);
+    if (!parsed.title && !parsed.url) { input.focus(); return; }
 
-// ============================================================
-// ADD ITEM
-// ============================================================
-
-addItemBtn.addEventListener(
-  "click",
-  async () => {
-
-    if (!viewer) {
-
-      alert("Please sign in first.");
-
-      return;
-
-    }
-
-
-    const owner =
-      itemOwner.value;
-
-    const title =
-      itemTitle.value.trim();
-
-    const note =
-      itemNote.value.trim();
-
-
-    // Make sure there is a title
-
-    if (!title) {
-
-      itemTitle.focus();
-
-      return;
-
-    }
-
-
-    // Get selected visibility
-
-    const visibility =
-      document.querySelector(
-        'input[name="visibility"]:checked'
-      )?.value || "visible";
-
-
-    // Clean URL
-
-    let url =
-      itemUrl.value.trim();
-
-    if (
-      url &&
-      !/^https?:\/\//i.test(url)
-    ) {
-
-      url =
-        "https://" + url;
-
-    }
-
-
-    addItemBtn.disabled = true;
-
-    addItemBtn.textContent =
-      "Adding...";
-
-
+    const btn = form.querySelector("button");
+    btn.disabled = true;
     try {
-
-      await addDoc(
-        itemsCol,
-        {
-
-          owner: owner,
-
-          addedBy: viewer,
-
-          visibility: visibility,
-
-          title: title,
-
-          url: url || null,
-
-          note: note || null,
-
-          reservedBy: null,
-
-          createdAt: serverTimestamp()
-
-        }
-      );
-
-
-      // Clear fields
-
-      itemTitle.value = "";
-
-      itemUrl.value = "";
-
-      itemNote.value = "";
-
-
-      // Reset visibility
-
-      const visibleRadio =
-        document.querySelector(
-          'input[name="visibility"][value="visible"]'
-        );
-
-      if (visibleRadio) {
-
-        visibleRadio.checked = true;
-
-      }
-
-
-      // Return owner selection to
-      // the current user's own list
-
-      itemOwner.value = viewer;
-
-
-      itemTitle.focus();
-
-
+      await addDoc(itemsCol, {
+        owner: form.dataset.owner,
+        addedBy: viewerKey,
+        title: parsed.title || parsed.url,
+        url: parsed.url,
+        price: parsed.price,
+        note: null,
+        createdAt: serverTimestamp()
+      });
+      input.value = "";
+      input.focus();
     } catch (err) {
-
-      console.error(
-        "Add item error:",
-        err
-      );
-
-      alert(
-        "Couldn't add that item. Check your Firebase setup."
-      );
-
+      console.error("Add item error:", err);
+      toast("Couldn't add that — check Firebase setup.");
     } finally {
-
-      addItemBtn.disabled = false;
-
-      addItemBtn.textContent =
-        "Add to the list";
-
+      btn.disabled = false;
     }
-
-  }
-);
-
-
-// ============================================================
-// ENTER KEY SUPPORT
-// ============================================================
-
-[
-  itemTitle,
-  itemUrl,
-  itemNote
-].forEach((input) => {
-
-  input.addEventListener(
-    "keydown",
-    (event) => {
-
-      if (event.key === "Enter") {
-
-        addItemBtn.click();
-
-      }
-
-    }
-  );
-
+  });
 });
 
-
-// ============================================================
-// RESERVE / UNRESERVE
-// ============================================================
-
-async function toggleReserve(
-  itemId,
-  currentlyReservedBy
-) {
-
-  if (!viewer) {
-    return;
-  }
-
-
-  const item =
-    allItems.find(
-      (item) => item.id === itemId
-    );
-
-
-  if (!item) {
-    return;
-  }
-
-
-  // You can only reserve
-  // something from your partner's list.
-
-  if (item.owner === viewer) {
-
-    alert(
-      "You can't reserve items on your own list."
-    );
-
-    return;
-
-  }
-
-
-  const ref =
-    doc(
-      db,
-      "wishlist_items",
-      itemId
-    );
-
-
-  const newReservedBy =
-    currentlyReservedBy === viewer
-      ? null
-      : viewer;
-
-
-  try {
-
-    await updateDoc(
-      ref,
-      {
-        reservedBy: newReservedBy
-      }
-    );
-
-  } catch (err) {
-
-    console.error(
-      "Reserve error:",
-      err
-    );
-
-    alert(
-      "Couldn't update that item."
-    );
-
-  }
-
-}
-
-
-// ============================================================
-// DELETE ITEM
-// ============================================================
-
-async function deleteItem(itemId) {
-
-  if (!viewer) {
-    return;
-  }
-
-
-  const item =
-    allItems.find(
-      (item) => item.id === itemId
-    );
-
-
-  if (!item) {
-    return;
-  }
-
-
-  // You can delete something if:
-  //
-  // 1. It is your own wishlist item
-  //
-  // OR
-  //
-  // 2. You were the person who added it.
-
-  if (
-    item.owner !== viewer &&
-    item.addedBy !== viewer
-  ) {
-
-    alert(
-      "You can only remove items you added."
-    );
-
-    return;
-
-  }
-
-
-  if (
-    !confirm(
-      "Remove this item from the list?"
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  try {
-
-    await deleteDoc(
-      doc(
-        db,
-        "wishlist_items",
-        itemId
-      )
-    );
-
-  } catch (err) {
-
-    console.error(
-      "Delete error:",
-      err
-    );
-
-    alert(
-      "Couldn't remove that item."
-    );
-
-  }
-
-}
-
-
-// ============================================================
-// ITEM VISIBILITY
-// ============================================================
-
-function canSeeItem(item) {
-
-  const visibility =
-    item.visibility || "visible";
-
-
-  // Normal item:
-  // both people can see it.
-
-  if (visibility === "visible") {
-
-    return true;
-
-  }
-
-
-  // Secret item:
-  // only the person who added it
-  // can see it.
-
-  return item.addedBy === viewer;
-
-}
-
-
-// ============================================================
-// CREATE ITEM HTML
-// ============================================================
-
-function itemHTML(item) {
-
-  const isOwnList =
-    item.owner === viewer;
-
-
-  let linkTitle;
-
-
-  if (item.url) {
-
-    linkTitle = `
-      <a
-        href="${escapeAttr(item.url)}"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        ${escapeHTML(item.title)}
-      </a>
-    `;
-
-  } else {
-
-    linkTitle =
-      escapeHTML(item.title);
-
-  }
-
-
-  let footRight = "";
-
-
-  // ==========================================================
-  // YOUR OWN LIST
-  // ==========================================================
-
-  if (isOwnList) {
-
-    /*
-      This is your wishlist.
-
-      You can remove your own items.
-
-      You do NOT see whether your partner
-      has reserved/bought this item.
-    */
-
-    footRight = `
-
-      <button
-        class="delete-btn"
-        data-action="delete"
-        data-id="${item.id}"
-      >
-        remove
-      </button>
-
-    `;
-
-  }
-
-
-  // ==========================================================
-  // PARTNER'S LIST
-  // ==========================================================
-
-  else {
-
-    /*
-      This is your partner's wishlist.
-
-      You are buying for them.
-
-      Therefore you CAN see reservation status.
-    */
-
-    const reservedByViewer =
-      item.reservedBy === viewer;
-
-
-    const reservedByOther =
-      item.reservedBy &&
-      item.reservedBy !== viewer;
-
-
-    if (reservedByOther) {
-
-      footRight = `
-
-        <span class="reserved-tag">
-          someone's on it
-        </span>
-
-      `;
-
-    } else {
-
-      footRight = `
-
-        <button
-          class="reserve-btn ${
-            reservedByViewer
-              ? "reserved"
-              : ""
-          }"
-          data-action="reserve"
-          data-id="${item.id}"
-          data-reserved-by="${
-            item.reservedBy || ""
-          }"
-        >
-
-          ${
-            reservedByViewer
-              ? "I've got this ✓"
-              : "I'll get this"
-          }
-
-        </button>
-
-      `;
-
-    }
-
-  }
-
-
-  return `
-
-    <li class="item">
-
-      <p class="item-title">
-        ${linkTitle}
-      </p>
-
-      ${
-        item.note
-          ? `
-            <p class="item-note">
-              ${escapeHTML(item.note)}
-            </p>
-          `
-          : ""
-      }
-
-      <div class="item-foot">
-
-        ${footRight}
-
-      </div>
-
-    </li>
-
-  `;
-
-}
-
-
-// ============================================================
-// RENDER BOTH LISTS
-// ============================================================
-
-function render() {
-
-  if (!viewer) {
-    return;
-  }
-
-
-  [
-    "anakin",
-    "padme"
-  ].forEach((owner) => {
-
-
-    const listEl =
-      document.querySelector(
-        `.items[data-list-for="${owner}"]`
-      );
-
-
-    const emptyEl =
-      document.querySelector(
-        `.empty-state[data-empty-for="${owner}"]`
-      );
-
-
-    if (!listEl) {
-      return;
-    }
-
-
-    const items =
-      allItems
-
-        .filter(
-          (item) =>
-            item.owner === owner
-        )
-
-        .filter(canSeeItem);
-
-
-    listEl.innerHTML =
-      items
-        .map(itemHTML)
-        .join("");
-
-
-    if (emptyEl) {
-
-      emptyEl.style.display =
-        items.length
-          ? "none"
-          : "block";
-
-    }
-
+function renderShared() {
+  if (!viewerKey) return;
+  Object.keys(PEOPLE).forEach((ownerKey) => {
+    const listEl = document.querySelector(`.items[data-list-for="${ownerKey}"]`);
+    const emptyEl = document.querySelector(`.empty[data-empty-for="${ownerKey}"]`);
+    const countEl = document.querySelector(`.count[data-count-for="${ownerKey}"]`);
+    if (!listEl) return;
+    const items = sharedItems.filter((i) => i.owner === ownerKey);
+    listEl.innerHTML = items.map((item) => sharedItemHTML(item)).join("");
+    if (emptyEl) emptyEl.style.display = items.length ? "none" : "block";
+    if (countEl) countEl.textContent = String(items.length);
   });
 
-
-  // ==========================================================
-  // RESERVE BUTTONS
-  // ==========================================================
-
-  document
-    .querySelectorAll(
-      '[data-action="reserve"]'
-    )
-    .forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          toggleReserve(
-            button.dataset.id,
-            button.dataset.reservedBy || null
-          );
-
-        }
-      );
-
+  document.querySelectorAll('.items .item[data-kind="shared"]').forEach((li) => {
+    li.addEventListener("click", (e) => {
+      if (e.target.closest(".item-link")) return;
+      openEdit("shared", li.dataset.id);
     });
-
-
-  // ==========================================================
-  // DELETE BUTTONS
-  // ==========================================================
-
-  document
-    .querySelectorAll(
-      '[data-action="delete"]'
-    )
-    .forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          deleteItem(
-            button.dataset.id
-          );
-
-        }
-      );
-
-    });
-
+  });
 }
 
+function sharedItemHTML(item) {
+  const addedByLabel = PEOPLE[item.addedBy]?.label || item.addedBy;
+  return `
+    <li class="item" data-kind="shared" data-id="${item.id}">
+      <div class="item-main">
+        <p class="item-title">${escapeHTML(item.title)}</p>
+        <p class="item-meta">added by ${escapeHTML(addedByLabel)}${item.note ? " · " + escapeHTML(item.note) : ""}</p>
+      </div>
+      ${item.price ? `<span class="item-price">${escapeHTML(item.price)}</span>` : ""}
+      ${item.url ? `<a class="item-link" href="${escapeAttr(item.url)}" target="_blank" rel="noopener noreferrer" title="Open link" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></a>` : ""}
+    </li>
+  `;
+}
+
+async function deleteShared(itemId) {
+  try { await deleteDoc(doc(db, "wishlist_items", itemId)); toast("Removed."); }
+  catch (err) { console.error("Delete error:", err); toast("Couldn't remove that item."); }
+}
+async function updateShared(itemId, data) {
+  try { await updateDoc(doc(db, "wishlist_items", itemId), data); toast("Saved."); }
+  catch (err) { console.error("Update error:", err); toast("Couldn't save that change."); }
+}
 
 // ============================================================
-// HTML ESCAPING
+// Secret stash — private per signed-in user, enforced by
+// Firestore rules keyed to the real Firebase uid.
 // ============================================================
-
-function escapeHTML(str) {
-
-  return String(str).replace(
-    /[&<>"']/g,
-    (character) => ({
-
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-
-    }[character])
+function listenToSecrets(uid) {
+  const secretQuery = query(secretsCol, where("ownerUid", "==", uid), orderBy("createdAt", "desc"));
+  unsubscribeSecret = onSnapshot(
+    secretQuery,
+    (snapshot) => {
+      secretItems = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderSecrets();
+    },
+    (err) => console.error("Firestore error (secret):", err)
   );
-
 }
 
+secretForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!viewerKey || !auth.currentUser) return;
+  const parsed = parseQuickAdd(secretInput.value);
+  if (!parsed.title && !parsed.url) { secretInput.focus(); return; }
 
-function escapeAttr(str) {
+  try {
+    await addDoc(secretsCol, {
+      ownerUid: auth.currentUser.uid,
+      title: parsed.title || parsed.url,
+      url: parsed.url,
+      price: parsed.price,
+      note: null,
+      createdAt: serverTimestamp()
+    });
+    secretInput.value = "";
+    secretInput.focus();
+  } catch (err) {
+    console.error("Add secret error:", err);
+    toast("Couldn't add that — check Firestore rules for secret_items.");
+  }
+});
 
-  return escapeHTML(str);
+function renderSecrets() {
+  secretList.innerHTML = secretItems.map((item) => secretItemHTML(item)).join("");
+  secretEmpty.style.display = secretItems.length ? "none" : "block";
+  secretCount.textContent = String(secretItems.length);
+  secretCount.classList.toggle("hidden", secretItems.length === 0);
 
+  document.querySelectorAll('.items .item[data-kind="secret"]').forEach((li) => {
+    li.addEventListener("click", (e) => {
+      if (e.target.closest(".item-link")) return;
+      openEdit("secret", li.dataset.id);
+    });
+  });
 }
+
+function secretItemHTML(item) {
+  return `
+    <li class="item" data-kind="secret" data-id="${item.id}">
+      <div class="item-main">
+        <p class="item-title">${escapeHTML(item.title)}</p>
+        ${item.note ? `<p class="item-meta">${escapeHTML(item.note)}</p>` : ""}
+      </div>
+      ${item.price ? `<span class="item-price">${escapeHTML(item.price)}</span>` : ""}
+      ${item.url ? `<a class="item-link" href="${escapeAttr(item.url)}" target="_blank" rel="noopener noreferrer" title="Open link" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></a>` : ""}
+    </li>
+  `;
+}
+
+async function deleteSecret(itemId) {
+  try { await deleteDoc(doc(db, "secret_items", itemId)); toast("Removed."); }
+  catch (err) { console.error("Delete secret error:", err); toast("Couldn't remove that."); }
+}
+async function updateSecret(itemId, data) {
+  try { await updateDoc(doc(db, "secret_items", itemId), data); toast("Saved."); }
+  catch (err) { console.error("Update secret error:", err); toast("Couldn't save that change."); }
+}
+
+// Drawer open/close
+function openDrawer() { secretDrawer.classList.add("open"); scrim.classList.add("open"); }
+function closeDrawer() { secretDrawer.classList.remove("open"); scrim.classList.remove("open"); }
+secretFab.addEventListener("click", openDrawer);
+drawerClose.addEventListener("click", closeDrawer);
+scrim.addEventListener("click", closeDrawer);
+
+// ============================================================
+// Edit dialog — shared by both shared & secret items
+// ============================================================
+function openEdit(kind, id) {
+  const source = kind === "shared" ? sharedItems : secretItems;
+  const item = source.find((i) => i.id === id);
+  if (!item) return;
+  editingContext = { kind, id };
+  editTitle.value = item.title || "";
+  editUrl.value = item.url || "";
+  editPrice.value = item.price || "";
+  editNote.value = item.note || "";
+  editDialog.showModal();
+  editTitle.focus();
+}
+editCancel.addEventListener("click", () => editDialog.close());
+
+editForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!editingContext) return;
+  const data = {
+    title: editTitle.value.trim(),
+    url: editUrl.value.trim() || null,
+    price: editPrice.value.trim() || null,
+    note: editNote.value.trim() || null
+  };
+  if (!data.title) { editTitle.focus(); return; }
+
+  if (editingContext.kind === "shared") await updateShared(editingContext.id, data);
+  else await updateSecret(editingContext.id, data);
+  editDialog.close();
+  editingContext = null;
+});
+
+editDelete.addEventListener("click", async () => {
+  if (!editingContext) return;
+  if (!confirm("Remove this item?")) return;
+  if (editingContext.kind === "shared") await deleteShared(editingContext.id);
+  else await deleteSecret(editingContext.id);
+  editDialog.close();
+  editingContext = null;
+});
+
+// ============================================================
+// Droid easter egg
+// ============================================================
+droidBtn.addEventListener("click", () => {
+  toast(DROID_LINES[Math.floor(Math.random() * DROID_LINES.length)]);
+});
+
+// ============================================================
+// Helpers
+// ============================================================
+function escapeHTML(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+function escapeAttr(str) { return escapeHTML(str); }
