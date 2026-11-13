@@ -37,7 +37,7 @@ const DROID_LINES = [
   "It takes strength to resist the dark side. Only the weak embrace it.",
   "Aaaaaaaaaaaaaaaarrrgh! - Chewie",
   "Are you an angel?",
-  "Doo-doo-di-doo",
+  "Doo-doo-di-doo - some mouse droid",
   "Choose wisely, you must.",
   "Dew it - Palpatine",
   "Patience you must have, my young Padawan."
