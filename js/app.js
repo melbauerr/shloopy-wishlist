@@ -35,7 +35,7 @@ const DROID_LINES = [
   "Power! Unlimited power!",
   "No longer certain that one ever does win a war, I am.",
   "It takes strength to resist the dark side. Only the weak embrace it.",
-  "Aaaaaaaaaaaaaaaarrrgh!",
+  "Aaaaaaaaaaaaaaaarrrgh! - Chewie",
   "Are you an angel?",
   "Doo-doo-di-doo",
   "Choose wisely, you must.",
