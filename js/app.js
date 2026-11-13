@@ -19,10 +19,28 @@ const PEOPLE = {
 };
 
 const DROID_LINES = [
-  "beep boop. welcome home.",
-  "this is the archive you're looking for.",
-  "bzzt — may the wishlist be with you.",
-  "whirr… two lists detected, one galaxy confirmed."
+  "Do or do not add to cart. There is no try. - Yoda",
+  "Roger, roger. - some B1-Battle droid",
+  "Don't shoot! I'm not the commander, he's the commander! - some B1-Battle droid",
+  "To the dark side, empty wallets lead. Spend wisely on this list, you must. - Yoda",
+  "There's 3 of us and only 1 of him. - some B1-Battle droid",
+  "Boy, this is a lot more fun when they're not shooting back. - some B1-Battle droid",
+  "R2-D2, you know better than to trust a strange computer. - C3PO",
+  "I suggest a new strategy, R2: Let the Wookiee win. - C3PO",
+  "Good soldiers follow orders.",
+  "Execute Order 66.",
+  "Many gifts, this list holds. Buy them for me, you will.",
+  "Wipe them out. All of them!",
+  "Even the children!!!",
+  "Power! Unlimited power!",
+  "No longer certain that one ever does win a war, I am.",
+  "It takes strength to resist the dark side. Only the weak embrace it.",
+  "Aaaaaaaaaaaaaaaarrrgh!",
+  "Are you an angel?",
+  "Doo-doo-di-doo",
+  "Choose wisely, you must.",
+  "Dew it - Palpatine",
+  "Patience you must have, my young Padawan."
 ];
 
 // ============================================================
